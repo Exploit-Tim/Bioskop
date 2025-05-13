@@ -20,7 +20,10 @@ async def start_handler(client: Client, message: Message) -> None:
         start_text = await get_start_text_msg()
         start_text = format_text_message(start_text, user)
         if user.id not in helper_handlers.admins:
-            await message.reply_text(start_text, quote=True, reply_markup=user_buttons)
+            if user_buttons:
+                await message.reply_text(start_text, quote=True, reply_markup=user_buttons)
+            else:
+                await message.reply_text(start_text, quote=True)
         else:
             buttons = admin_buttons()
             await message.reply_text(start_text, quote=True, reply_markup=buttons)
@@ -29,7 +32,10 @@ async def start_handler(client: Client, message: Message) -> None:
         force_text = await get_force_text_msg()
         force_text = format_text_message(force_text, user)
         if await helper_handlers.user_is_not_join(user.id):
-            await message.reply_text(force_text, quote=True, reply_markup=user_buttons)
+            if user_buttons:
+                await message.reply_text(force_text, quote=True, reply_markup=user_buttons)
+            else:
+                await message.reply_text(force_text, quote=True)
             return
 
     message_ids = helper_handlers.decode_data(message.command[1])
@@ -37,10 +43,11 @@ async def start_handler(client: Client, message: Message) -> None:
     msgs = await client.get_messages(config.DATABASE_CHAT_ID, message_ids)
     for msg in msgs:
         if msg.empty:
-            pass
+            continue
 
         protect_content = await get_protect_content()
         await msg.copy(user.id, protect_content=protect_content)
+
 
 
 def format_text_message(text: str, user: User) -> str:
